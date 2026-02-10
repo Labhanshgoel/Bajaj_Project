@@ -27,8 +27,8 @@ const failure = (code) => ({
 
 const fibonacci = (n) => {
   if (n < 0 || n > 100) return null;
-  const res = [];
   let a = 0, b = 1;
+  const res = [];
   for (let i = 0; i < n; i++) {
     res.push(a);
     [a, b] = [b, a + b];
@@ -63,73 +63,54 @@ app.post("/bfhl", async (req, res) => {
       if (!Number.isInteger(value)) {
         return res.status(422).json(failure("INVALID_FIBONACCI_INPUT"));
       }
-
       const data = fibonacci(value);
       if (!data) {
         return res.status(422).json(failure("FIBONACCI_OUT_OF_RANGE"));
       }
-
-      return res.status(200).json(success(data));
+      return res.json(success(data));
     }
 
     if (key === "prime") {
       if (!Array.isArray(value)) {
         return res.status(422).json(failure("INVALID_PRIME_INPUT"));
       }
-
-      return res.status(200).json(
-        success(value.filter(isPrime))
-      );
+      return res.json(success(value.filter(isPrime)));
     }
 
     if (key === "lcm") {
       if (!Array.isArray(value) || value.length === 0) {
         return res.status(422).json(failure("INVALID_LCM_INPUT"));
       }
-
-      return res.status(200).json(
-        success(value.reduce((a, b) => lcm(a, b)))
-      );
+      return res.json(success(value.reduce((a, b) => lcm(a, b))));
     }
 
     if (key === "hcf") {
       if (!Array.isArray(value) || value.length === 0) {
         return res.status(422).json(failure("INVALID_HCF_INPUT"));
       }
-
-      return res.status(200).json(
-        success(value.reduce((a, b) => gcd(a, b)))
-      );
+      return res.json(success(value.reduce((a, b) => gcd(a, b))));
     }
 
     if (key === "AI") {
       if (typeof value !== "string" || value.length > 500) {
         return res.status(422).json(failure("INVALID_AI_INPUT"));
       }
-
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(value);
-      const text = result.response.text();
-
-      return res.status(200).json(success(text.trim()));
+      return res.json(success(result.response.text().trim()));
     }
 
     return res.status(400).json(failure("UNKNOWN_KEY"));
-
   } catch {
     return res.status(500).json(failure("INTERNAL_SERVER_ERROR"));
   }
 });
 
 app.get("/health", (req, res) => {
-  res.status(200).json({
+  res.json({
     is_success: true,
     official_email: OFFICIAL_EMAIL
   });
 });
 
-app.use((err, req, res, next) => {
-  res.status(500).json(failure("MALFORMED_JSON"));
-});
-
-app.listen(3000);
+export default app;
